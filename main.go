@@ -3,44 +3,60 @@ package main
 import (
 	"bytes"
 	"encoding/binary"
+	"flag"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
-	"os"
 	"time"
 
 	"github.com/google/gopacket"
+	"github.com/vharitonsky/iniflags"
 
 	"github.com/google/gopacket/pcap"
 )
 
-//All of these global parameters are user specific and should go in a configuration file
-const module = `JPC283937E`
-const inverter = `BYZ3719012`
-const apiKey = `f41525212ca281f8a54c12741e6dbaacd9d45def`
-const systemID = `66690`
-
-//BaseURL should probably go in a configuration file as well
-var baseURL = `https://pvoutput.org/service/r2/addstatus.jsp`
+var (
+	port     = flag.Int("port", 5279, "Port number")
+	network  = flag.String("interface", "wlan0", "Network interface")
+	hostname = flag.String("hostname", "", "Hostname of dongle")
+	module   = flag.String("dongle", "", "ID of the dongle")
+	inverter = flag.String("inverter", "", "ID of the inverter")
+	apiKey   = flag.String("pvoutkey", "", "PVoutput API key, needs to be read write")
+	systemID = flag.Int("pvoutid", 0, "PVoutput system ID")
+	baseURL  = flag.String("dest", `https://pvoutput.org/service/r2/addstatus.jsp`, "API endpoint URL for live updates")
+)
 
 func main() {
-	if len(os.Args) < 2 {
-		fmt.Println("USAGE:", os.Args[0], "HOSTNAME")
-		return
+	iniflags.Parse()
+
+	//TODO make it so the program can run without pvout enabled
+	if hostname == nil {
+		log.Fatalln("hostname not set")
 	}
-	hostname := os.Args[1]
+	if module == nil {
+		log.Fatalln("dongle not set")
+	}
+	if inverter == nil {
+		log.Fatalln("Inverter not set")
+	}
+	if apiKey == nil {
+		log.Fatalln("pvoutkey not set")
+	}
+	if systemID == nil {
+		log.Fatalln("pvoutid not set")
+	}
 
 	//TODO: Allow choosing the interface to listen on
-	handle, err := pcap.OpenLive("wlan0", int32(0xffff), false, -1*time.Second)
+	handle, err := pcap.OpenLive(*network, int32(0xffff), false, -1*time.Second)
 	if err != nil {
 		panic(err)
 	}
 	defer handle.Close()
 
 	//TODO: Maybe allow choosing port number optionally
-	err = handle.SetBPFFilter("tcp and port 5279 and host " + hostname)
+	err = handle.SetBPFFilter("tcp and port " + fmt.Sprint(*port) + "and host " + *hostname)
 	if err != nil {
 		panic(err)
 	}
@@ -69,7 +85,7 @@ func main() {
 			if err != nil {
 				//TODO: We might want to simply log a failed upload, we should be handling things like rate limiting
 				//notices we get
-				panic(err)
+				log.Println(err)
 			}
 			//TODO: Don't throw away unuploaded statusses, we can use these for our end of day report
 			readyStatusses = readyStatusses[:0]
@@ -81,13 +97,13 @@ func main() {
 func upload(status taggedRegister) error {
 	var client http.Client
 
-	req, err := http.NewRequest("POST", baseURL, nil)
+	req, err := http.NewRequest("POST", *baseURL, nil)
 	if err != nil {
-		panic(err)
+		log.Println(err)
 	}
 
-	req.Header.Add("X-Pvoutput-Apikey", apiKey)
-	req.Header.Add("X-Pvoutput-SystemId", systemID)
+	req.Header.Add("X-Pvoutput-Apikey", *apiKey)
+	req.Header.Add("X-Pvoutput-SystemId", fmt.Sprint(systemID))
 
 	q := req.URL.Query()
 
@@ -101,7 +117,7 @@ func upload(status taggedRegister) error {
 	q.Add("t", clock)
 	q.Add("v2", fmt.Sprint((status.growattRegisters.Ppv)/10))
 	q.Add("v5", fmt.Sprint(float32(status.growattRegisters.Tmp)/10))
-	q.Add("v6", fmt.Sprint(float32(status.growattRegisters.Vac)/100))
+	q.Add("v6", fmt.Sprint(float32(status.growattRegisters.Vac1)/100))
 
 	req.URL.RawQuery = q.Encode()
 

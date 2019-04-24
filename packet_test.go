@@ -14,7 +14,6 @@ var dongleVersionNew = []byte{0x0, 0x10, 0x0, 0x5}
 
 func TestUpload(t *testing.T) {
 	//NOTE do not leave baseURL set to PVOutput or you will pollute your monitoring data.
-	baseURL = `https://httpbin.org/post`
 
 	var fields growattRegisters
 	fields.Ppv = 100
@@ -66,8 +65,8 @@ func TestPing(t *testing.T) {
 	}
 	ping := msg.readPing(r)
 
-	if string(ping.Key[:]) != (module + inverter)[:10] {
-		t.Error("Got:", ping.Key[:], "Expected:", (module + inverter)[:10])
+	if string(ping.Key[:]) != (*module + *inverter)[:10] {
+		t.Error("Got:", ping.Key[:], "Expected:", (*module + *inverter)[:10])
 	}
 }
 
@@ -75,7 +74,7 @@ func TestPing(t *testing.T) {
 func TestPingXor(t *testing.T) {
 	//var PingFooter = []byte{0X0d, 0X22, 0X2c, 0X45, 0X59, 0X47, 0X4d, 0X74, 0X45, 0X2a, 0X48, 0X44}
 	var PingFooter = pingBody[8:18]
-	xored := xor([]byte(module), PingFooter)
+	xored := xor([]byte(*module), PingFooter)
 
 	if string(xored) != "GrowattGro" {
 		t.Fail()
