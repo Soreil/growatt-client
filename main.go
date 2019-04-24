@@ -32,19 +32,19 @@ func main() {
 	iniflags.Parse()
 
 	//TODO make it so the program can run without pvout enabled
-	if hostname == nil {
+	if *hostname == "" {
 		log.Fatalln("hostname not set")
 	}
-	if module == nil {
+	if *module == "" {
 		log.Fatalln("dongle not set")
 	}
-	if inverter == nil {
+	if *inverter == "" {
 		log.Fatalln("Inverter not set")
 	}
-	if apiKey == nil {
+	if *apiKey == "" {
 		log.Fatalln("pvoutkey not set")
 	}
-	if systemID == nil {
+	if *systemID == 0 {
 		log.Fatalln("pvoutid not set")
 	}
 
@@ -56,7 +56,7 @@ func main() {
 	defer handle.Close()
 
 	//TODO: Maybe allow choosing port number optionally
-	err = handle.SetBPFFilter("tcp and port " + fmt.Sprint(*port) + "and host " + *hostname)
+	err = handle.SetBPFFilter("tcp and port " + fmt.Sprint(*port) + " and host " + *hostname)
 	if err != nil {
 		panic(err)
 	}

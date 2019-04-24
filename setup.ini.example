@@ -1,0 +1,17 @@
+#Example system configuration
+#hostname can also be an IP adress
+#hostname = "ESP_ABCDEF"
+#there should be a sticker on the box or module to identify this
+#dongle = "JPC234234D"
+#The display on the box or the info sticker on the side whould have this number
+#inverter = "BYZ12345678"
+#A read write API key has to be created through the PVoutput website
+#pvoutkey = "2ab35973123248957"
+#This is the ID of the pvoutput setup you are monitoring
+#pvoutid = 66690
+#Interface on which to listen for packets. by default this is set to wlan0
+#interface = "wlan0"
+#Port on which the server and dongle communicate, growatt uses 5279 which is default
+#port = 5279
+#Destination of upload, currently only the pvoutput live update API endpoint is supported. Another implementation of this API should also work
+#dest = "https://pvoutput.org/service/r2/addstatus.jsp"
