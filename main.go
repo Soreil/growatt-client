@@ -103,7 +103,7 @@ func upload(status taggedRegister) error {
 	}
 
 	req.Header.Add("X-Pvoutput-Apikey", *apiKey)
-	req.Header.Add("X-Pvoutput-SystemId", fmt.Sprint(systemID))
+	req.Header.Add("X-Pvoutput-SystemId", fmt.Sprint(*systemID))
 
 	q := req.URL.Query()
 
@@ -117,7 +117,7 @@ func upload(status taggedRegister) error {
 	q.Add("t", clock)
 	q.Add("v2", fmt.Sprint((status.growattRegisters.Ppv)/10))
 	q.Add("v5", fmt.Sprint(float32(status.growattRegisters.Tmp)/10))
-	q.Add("v6", fmt.Sprint(float32(status.growattRegisters.Vac1)/100))
+	q.Add("v6", fmt.Sprint(float32(status.growattRegisters.Vac1)/10))
 
 	req.URL.RawQuery = q.Encode()
 
