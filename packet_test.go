@@ -12,13 +12,14 @@ var dataAckBody = []byte{0x00, 0x0b, 0x00, 0x05, 0x00, 0x03, 0x01, 0x04, 0x47, 0
 var dongleVersionOld = []byte{0x0, 0x1, 0x0, 0x2}
 var dongleVersionNew = []byte{0x0, 0x10, 0x0, 0x5}
 
+//TODO rewrite
 func TestUpload(t *testing.T) {
 	//NOTE do not leave baseURL set to PVOutput or you will pollute your monitoring data.
 
 	var fields growattRegisters
-	fields.Ppv = 100
-	fields.Tmp = 230
-	fields.Vac = 5000
+	fields.Ppv = 100   //10W
+	fields.Tmp = 230   //23C
+	fields.Vac1 = 2351 //235.1V
 
 	tim := time.Now()
 
