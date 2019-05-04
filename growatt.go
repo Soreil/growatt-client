@@ -3,44 +3,60 @@ package main
 import (
 	"bytes"
 	"encoding/binary"
-	"io"
+	"errors"
 	"log"
 	"time"
 
 	"github.com/google/gopacket"
 )
 
-//readRegisteredPackets checks if a packet is a data packet and sends the extracted and timestamped data for output
-func readRegisterPackets(pChan <-chan gopacket.Packet, regChan chan<- taggedRegister) {
+type growattPacketType uint16
 
-	for packet := range pChan {
+const (
+	unknown growattPacketType = iota
+	registers
+	registersAck
+	ping
+	pingAck
+)
 
-		transLayer := packet.ApplicationLayer()
-		if transLayer == nil {
-			continue
-		}
-		transLayer.LayerContents()
-
-		r := bytes.NewReader(transLayer.LayerContents())
-		msg := identifyMessage(r)
-
-		if isDataPacket(msg) {
-			body := msg.readDataBody(r)
-			decoded := xor(body.Tail[:], []byte("Growatt"))
-
-			r = bytes.NewReader(decoded)
-			regs := read(r)
-
-			log.Printf("%s\n%+v\n", time.Now(), regs)
-
-			regChan <- taggedRegister{time.Now(), regs}
-		}
+func typeOf(m ModbusTCP) (growattPacketType, error) {
+	if m.ProtocolIdentifier != ModbusProtocolGrowattV5 {
+		return unknown, errors.New("Unknown protocol:" + m.ProtocolIdentifier.String())
 	}
+
+	if growattType(m.GrowattMessageID) == dataID && m.Length == 217 {
+		return registers, nil
+	}
+
+	return unknown, nil
 }
 
-//We require the length since the data packet ack uses the same type
-func isDataPacket(msg growattHeader) bool {
-	return msg.Length == 217 && msg.Typ == data && msg.Version == 5
+//readRegisteredPackets checks if a packet is a data packet and sends the extracted and timestamped data for output
+func readRegisterPackets(pChan <-chan gopacket.Packet, regChan chan<- taggedRegister) {
+	const XORKey = "Growatt"
+
+	for packet := range pChan {
+		modbus, err := readModbus(packet)
+		if err != nil {
+			continue
+		}
+
+		t, err := typeOf(modbus)
+		if err != nil {
+			log.Println(err)
+			continue
+		}
+
+		switch t {
+		case registers:
+			body := xor(modbus.Payload(), []byte(XORKey))
+			regs := readRegStruct(body)
+			log.Printf("%+v\n", regs)
+			regChan <- taggedRegister{time.Now(), regs}
+		}
+
+	}
 }
 
 //Xor will loop around the b key if is is shorter than the a key
@@ -53,74 +69,12 @@ func xor(a []byte, b []byte) []byte {
 }
 
 //These types appear to be valid for multiple versions of the protocol
-type growattType uint16
+type growattType uint8
 
 const (
-	ping growattType = 278
-	data growattType = 260
+	pingID growattType = 0x16
+	dataID growattType = 0x04
 )
-
-//This seems to be a universal standard for growatt protocol versions
-const headerSize = 8
-
-//Some older versions of the growatt protocol seem to have a 4 byte version instead of 2 bytes for index and version
-//These protocol versions lack an index
-type growattHeader struct {
-	Index   uint16
-	Version uint16
-	Length  uint16
-	Typ     growattType
-}
-
-//TODO we don't know what the tail is used for
-type pingMessage struct {
-	Key  [10]byte
-	Tail [2]byte
-}
-
-//TODO we don't know what the tail is used for of course ACK is 3 letters but it doesn't seem to match
-type dataAck struct {
-	Tail [3]byte
-}
-
-//TODO should we put the growattregisters struct straight in here?
-type dataBody struct {
-	Tail [217]byte
-}
-
-func (body dataBody) readRegisters() growattRegisters {
-	decoded := xor(body.Tail[:], []byte("Growatt"))
-	r := bytes.NewReader(decoded)
-	regs := read(r)
-
-	return regs
-}
-
-//Extract data from the packet
-func (g growattHeader) readDataAck(r io.ReadSeeker) dataAck {
-	var body dataAck
-	r.Seek(8, 0)
-	binary.Read(r, binary.LittleEndian, &body)
-	return body
-}
-
-//Extract data from the packet
-func (g growattHeader) readDataBody(r io.ReadSeeker) dataBody {
-	var body dataBody
-	r.Seek(8, 0)
-	binary.Read(r, binary.LittleEndian, &body)
-	return body
-}
-
-func (g growattHeader) readPing(r io.ReadSeeker) pingMessage {
-	var body pingMessage
-	r.Seek(8, 0)
-	binary.Read(r, binary.LittleEndian, &body)
-	decoded := xor(body.Key[:], []byte("GrowattGro"))
-	copy(body.Key[:], decoded)
-
-	return body
-}
 
 //taggedRegister is a simple helper pair
 type taggedRegister struct {
@@ -176,19 +130,12 @@ type growattRegisters struct {
 }
 
 //TODO give this a proper name
-func read(r io.ReadSeeker) growattRegisters {
+func readRegStruct(s []byte) growattRegisters {
+	r := bytes.NewReader(s[31:])
 
-	r.Seek(10+10+11, 0) //inverter + dongle + padding
 	var g growattRegisters
 	//TODO in other cases we have littleendian, is this correct at all?
 	binary.Read(r, binary.BigEndian, &g)
 
 	return g
-}
-
-//Read the message header in to a growattheader struct
-func identifyMessage(r io.Reader) (g growattHeader) {
-	//TODO in other cases we have littleendian, is this correct at all?
-	binary.Read(r, binary.BigEndian, &g)
-	return
 }
