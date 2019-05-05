@@ -25,11 +25,24 @@ func typeOf(m ModbusTCP) (growattPacketType, error) {
 		return unknown, errors.New("Unknown protocol:" + m.ProtocolIdentifier.String())
 	}
 
-	if growattType(m.GrowattMessageID) == dataID && m.Length == 217 {
-		return registers, nil
+	switch growattType(m.GrowattMessageID) {
+	case dataID:
+		if m.Length == 217 {
+			return registers, nil
+		} else if m.Length == 3 {
+			return registersAck, nil
+		}
+		return registers, errors.New("invalid registers length")
+
+	case pingID:
+		if m.Length == 12 {
+			return ping, nil
+		}
+		return ping, errors.New("Invalid ping length")
+
 	}
 
-	return unknown, nil
+	return unknown, errors.New("Unknown packet identifier")
 }
 
 //readRegisteredPackets checks if a packet is a data packet and sends the extracted and timestamped data for output
@@ -54,7 +67,18 @@ func readRegisterPackets(pChan <-chan gopacket.Packet, regChan chan<- taggedRegi
 			regs := readRegStruct(body)
 			log.Printf("%+v\n", regs)
 			regChan <- taggedRegister{time.Now(), regs}
+		case ping:
+			body := xor(modbus.Payload(), []byte(XORKey))
+			InverterID := string(body[:len(body)-growattPadding])
+			log.Printf("%+v\n", InverterID)
+		case registersAck:
+			body := xor(modbus.Payload(), []byte(XORKey))
+			ack := uint8(body[:len(body)-growattPadding][0])
+			if ack != 0 {
+				log.Println("Server did not ack registers upload correctly:", ack)
+			}
 		}
+		log.Println(modbus.TransactionIdentifier)
 
 	}
 }
