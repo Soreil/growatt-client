@@ -31,9 +31,9 @@ func upload(status growatt.TaggedRegister) error {
 	//These are all the free PVOutput features we can use reliably.
 	q.Add("d", date)
 	q.Add("t", clock)
-	q.Add("v2", fmt.Sprint((status.growattRegisters.Ppv)/10))
-	q.Add("v5", fmt.Sprint(float32(status.growattRegisters.Tmp)/10))
-	q.Add("v6", fmt.Sprint(float32(status.growattRegisters.Vac1)/10))
+	q.Add("v2", fmt.Sprint((status.GrowattRegisters.Ppv)/10))
+	q.Add("v5", fmt.Sprint(float32(status.GrowattRegisters.Tmp)/10))
+	q.Add("v6", fmt.Sprint(float32(status.GrowattRegisters.Vac1)/10))
 
 	req.URL.RawQuery = q.Encode()
 

@@ -21,7 +21,7 @@ func TestNewProcessing(t *testing.T) {
 	output := make(chan TaggedRegister)
 	go ReadRegisterPackets(packets.Packets(), output)
 	for p := range output {
-		t.Log(p.growattRegisters)
+		t.Log(p.GrowattRegisters)
 	}
 
 }

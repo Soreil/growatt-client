@@ -103,11 +103,11 @@ const (
 //TaggedRegister is a simple helper pair
 type TaggedRegister struct {
 	time.Time
-	growattRegisters
+	GrowattRegisters
 }
 
-//These registers might not be complete or correct. The fields we are currently using are correct though
-type growattRegisters struct {
+//GrowattRegisters might not be complete or correct. The fields we are currently using are correct though
+type GrowattRegisters struct {
 	Status    uint16
 	Ppv       uint32
 	Vpv1      uint16
@@ -154,10 +154,10 @@ type growattRegisters struct {
 }
 
 //TODO give this a proper name
-func readRegStruct(s []byte) growattRegisters {
+func readRegStruct(s []byte) GrowattRegisters {
 	r := bytes.NewReader(s[31:])
 
-	var g growattRegisters
+	var g GrowattRegisters
 	//TODO in other cases we have littleendian, is this correct at all?
 	binary.Read(r, binary.BigEndian, &g)
 
