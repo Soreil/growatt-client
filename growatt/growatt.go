@@ -46,7 +46,7 @@ func typeOf(m ModbusTCP) (growattPacketType, error) {
 }
 
 //ReadRegisterPackets checks if a packet is a data packet and sends the extracted and timestamped data for output
-func ReadRegisterPackets(pChan <-chan gopacket.Packet, regChan chan<- taggedRegister) {
+func ReadRegisterPackets(pChan <-chan gopacket.Packet, regChan chan<- TaggedRegister) {
 	const XORKey = "Growatt"
 
 	for packet := range pChan {
@@ -66,7 +66,7 @@ func ReadRegisterPackets(pChan <-chan gopacket.Packet, regChan chan<- taggedRegi
 			body := xor(modbus.Payload(), []byte(XORKey))
 			regs := readRegStruct(body)
 			log.Printf("%+v\n", regs)
-			regChan <- taggedRegister{time.Now(), regs}
+			regChan <- TaggedRegister{time.Now(), regs}
 		case ping:
 			body := xor(modbus.Payload(), []byte(XORKey))
 			InverterID := string(body[:len(body)-growattPadding])
@@ -100,8 +100,8 @@ const (
 	dataID growattType = 0x04
 )
 
-//taggedRegister is a simple helper pair
-type taggedRegister struct {
+//TaggedRegister is a simple helper pair
+type TaggedRegister struct {
 	time.Time
 	growattRegisters
 }

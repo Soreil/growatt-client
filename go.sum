@@ -1,4 +1,6 @@
 github.com/google/gopacket v1.1.16 h1:u6Afvia5C5srlLcbTwpHaFW918asLYPxieziOaWwz8M=
 github.com/google/gopacket v1.1.16/go.mod h1:UCLx9mCmAwsVbn6qQl1WIEt2SO7Nd2fD0th1TBAsqBw=
+github.com/soreil/growatt-client/growatt v0.0.0-20190506105626-51ef07baeaa9 h1:ZFdUolGUtTJ+fW4HIQqvsnvft8XXNxSZOcdWjHrq5BU=
+github.com/soreil/growatt-client/growatt v0.0.0-20190506105626-51ef07baeaa9/go.mod h1:U9c0kGR6adM2mEq9osbLiCQt9pDPPukPbT/nPh1Bs68=
 github.com/vharitonsky/iniflags v0.0.0-20180513140207-a33cd0b5f3de h1:fkw+7JkxF3U1GzQoX9h69Wvtvxajo5Rbzy6+YMMzPIg=
 github.com/vharitonsky/iniflags v0.0.0-20180513140207-a33cd0b5f3de/go.mod h1:irMhzlTz8+fVFj6CH2AN2i+WI5S6wWFtK3MBCIxIpyI=

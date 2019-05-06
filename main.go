@@ -8,7 +8,7 @@ import (
 
 	"github.com/google/gopacket"
 	"github.com/google/gopacket/pcap"
-	"github.com/soreil/dongle/growatt"
+	"github.com/soreil/growatt-client/growatt"
 	"github.com/vharitonsky/iniflags"
 )
 

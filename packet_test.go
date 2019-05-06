@@ -3,6 +3,8 @@ package main
 import (
 	"testing"
 	"time"
+
+	"github.com/soreil/growatt-client/growatt"
 )
 
 //TODO rewrite

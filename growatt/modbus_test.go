@@ -18,7 +18,7 @@ func TestNewProcessing(t *testing.T) {
 
 	packets := gopacket.NewPacketSource(handle, handle.LinkType())
 
-	output := make(chan taggedRegister)
+	output := make(chan TaggedRegister)
 	go ReadRegisterPackets(packets.Packets(), output)
 	for p := range output {
 		t.Log(p.growattRegisters)

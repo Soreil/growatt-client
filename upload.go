@@ -5,6 +5,8 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+
+	"github.com/soreil/growatt-client/growatt"
 )
 
 //Uploads the packet Time, Wattage, Temperature and Voltage to PVOutput
