@@ -6,7 +6,7 @@
 //
 //******************************************************************************
 
-package main
+package growatt
 
 import (
 	"encoding/binary"

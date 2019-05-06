@@ -1,4 +1,4 @@
-package main
+package growatt
 
 import (
 	"bytes"
@@ -45,8 +45,8 @@ func typeOf(m ModbusTCP) (growattPacketType, error) {
 	return unknown, errors.New("Unknown packet identifier")
 }
 
-//readRegisteredPackets checks if a packet is a data packet and sends the extracted and timestamped data for output
-func readRegisterPackets(pChan <-chan gopacket.Packet, regChan chan<- taggedRegister) {
+//ReadRegisterPackets checks if a packet is a data packet and sends the extracted and timestamped data for output
+func ReadRegisterPackets(pChan <-chan gopacket.Packet, regChan chan<- taggedRegister) {
 	const XORKey = "Growatt"
 
 	for packet := range pChan {

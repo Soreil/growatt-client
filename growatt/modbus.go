@@ -1,4 +1,4 @@
-package main
+package growatt
 
 import (
 	"errors"

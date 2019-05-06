@@ -1,4 +1,4 @@
-package main
+package growatt
 
 import (
 	"testing"
@@ -9,7 +9,7 @@ import (
 )
 
 func TestNewProcessing(t *testing.T) {
-	testFile := `dumps\dump-13-27.pcap`
+	testFile := `..\dumps\dump-13-27.pcap`
 	handle, err := pcap.OpenOffline(testFile)
 	if err != nil {
 		panic(err)
@@ -19,7 +19,7 @@ func TestNewProcessing(t *testing.T) {
 	packets := gopacket.NewPacketSource(handle, handle.LinkType())
 
 	output := make(chan taggedRegister)
-	go readRegisterPackets(packets.Packets(), output)
+	go ReadRegisterPackets(packets.Packets(), output)
 	for p := range output {
 		t.Log(p.growattRegisters)
 	}
@@ -27,7 +27,7 @@ func TestNewProcessing(t *testing.T) {
 }
 
 func TestModbus(t *testing.T) {
-	testFile := `dumps\dump-13-27.pcap`
+	testFile := `..\dumps\dump-13-27.pcap`
 	handle, err := pcap.OpenOffline(testFile)
 	if err != nil {
 		panic(err)

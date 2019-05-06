@@ -8,7 +8,7 @@ import (
 )
 
 //Uploads the packet Time, Wattage, Temperature and Voltage to PVOutput
-func upload(status taggedRegister) error {
+func upload(status growatt.TaggedRegister) error {
 	var client http.Client
 
 	req, err := http.NewRequest("POST", *baseURL, nil)

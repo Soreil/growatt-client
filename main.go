@@ -7,9 +7,9 @@ import (
 	"time"
 
 	"github.com/google/gopacket"
-	"github.com/vharitonsky/iniflags"
-
 	"github.com/google/gopacket/pcap"
+	"github.com/soreil/dongle/growatt"
+	"github.com/vharitonsky/iniflags"
 )
 
 var (
@@ -58,13 +58,13 @@ func main() {
 
 	packetSource := gopacket.NewPacketSource(handle, handle.LinkType())
 
-	statusUpdates := make(chan taggedRegister)
-	go readRegisterPackets(packetSource.Packets(), statusUpdates)
+	statusUpdates := make(chan growatt.TaggedRegister)
+	go growatt.ReadRegisterPackets(packetSource.Packets(), statusUpdates)
 
 	//TODO: allow choosing a different duration in case we want slower reports or find a way to query the dongle faster
 	ticker := time.NewTicker(time.Minute * 5)
 
-	var readyStatusses []taggedRegister
+	var readyStatusses []growatt.TaggedRegister
 	for {
 		select {
 		case status := <-statusUpdates:
