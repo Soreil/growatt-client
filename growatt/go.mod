@@ -1,4 +1,4 @@
-module github.com/soreil/dongle/growatt
+module github.com/soreil/growatt-client/growatt
 
 go 1.12
 
