@@ -57,7 +57,7 @@ func ReadRegisterPackets(pChan <-chan gopacket.Packet, regChan chan<- TaggedRegi
 
 		t, err := typeOf(modbus)
 		if err != nil {
-			log.Fatal(err)
+			log.Println(err)
 			continue
 		}
 
@@ -75,11 +75,9 @@ func ReadRegisterPackets(pChan <-chan gopacket.Packet, regChan chan<- TaggedRegi
 			body := xor(modbus.Payload(), []byte(XORKey))
 			ack := uint8(body[:len(body)-growattPadding][0])
 			if ack != 0 {
-				log.Fatal("Server did not ack registers upload correctly:", ack)
+				log.Println("Server did not ack registers upload correctly:", ack)
 			}
 		}
-		//log.Fatal(modbus.TransactionIdentifier)
-
 	}
 }
 
