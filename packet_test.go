@@ -11,7 +11,7 @@ import (
 func NoTestUpload(t *testing.T) {
 	//NOTE do not leave baseURL set to PVOutput or you will pollute your monitoring data.
 
-	var fields growatt.GrowattRegisters
+	var fields growatt.Registers
 	fields.Ppv = 100   //10W
 	fields.Tmp = 230   //23C
 	fields.Vac1 = 2351 //235.1V
