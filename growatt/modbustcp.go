@@ -27,7 +27,7 @@ import (
 const mbapRecordSizeInBytes int = 7
 const growattRecordSizeInBytes int = mbapRecordSizeInBytes + 1
 const modbusPDUMinimumRecordSizeInBytes int = 2
-const modbusPDUMaximumRecordSizeInBytes int = 253
+const modbusPDUMaximumRecordSizeInBytes int = 293
 const growattPadding int = 2
 
 //LayerTypeGrowattModbusTCP 1141 should be an allowed number for us to steal, it's just 1000 added to the base type
@@ -40,6 +40,7 @@ type ModbusProtocol uint16
 const (
 	ModbusProtocolModbus    ModbusProtocol = 0
 	ModbusProtocolGrowattV5 ModbusProtocol = 5
+	ModbusProtocolGrowattV6 ModbusProtocol = 6
 )
 
 func (mp ModbusProtocol) String() string {
@@ -50,6 +51,8 @@ func (mp ModbusProtocol) String() string {
 		return "Modbus"
 	case ModbusProtocolGrowattV5:
 		return "GrowattV5"
+	case ModbusProtocolGrowattV6:
+		return "GrowattV6"
 	}
 }
 
@@ -128,7 +131,7 @@ func (d *ModbusTCP) DecodeFromBytes(data []byte, df gopacket.DecodeFeedback) err
 	// ModbusTCP type embeds type BaseLayer which contains two fields:
 	//    Contents is supposed to contain the bytes of the data at this level (MPBA).
 	//    Payload is supposed to contain the payload of this level (PDU).
-	d.BaseLayer = layers.BaseLayer{Contents: data[:growattRecordSizeInBytes], Payload: data[growattRecordSizeInBytes:len(data)]}
+	d.BaseLayer = layers.BaseLayer{Contents: data[:growattRecordSizeInBytes], Payload: data[growattRecordSizeInBytes:]}
 
 	// Extract the fields from the block of bytes.
 	// The fields can just be copied in big endian order.

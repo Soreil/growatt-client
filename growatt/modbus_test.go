@@ -21,7 +21,44 @@ func TestNewProcessing(t *testing.T) {
 	output := make(chan TaggedRegister)
 	go ReadRegisterPackets(packets.Packets(), output)
 	for p := range output {
-		t.Log(p.GrowattRegisters)
+		t.Log(p.Registers)
+	}
+
+}
+func TestNewProcessingV6(t *testing.T) {
+	testFile := `..\dumps\packets.pcap`
+	handle, err := pcap.OpenOffline(testFile)
+	if err != nil {
+		panic(err)
+	}
+	defer handle.Close()
+
+	packets := gopacket.NewPacketSource(handle, handle.LinkType())
+
+	output := make(chan TaggedRegister)
+	go ReadRegisterPackets(packets.Packets(), output)
+	for p := range output {
+		t.Log(p.Registers)
+	}
+
+}
+
+func TestCapture19062020(t *testing.T) {
+	testFile := `..\dumps\packets.pcap`
+
+	handle, err := pcap.OpenOffline(testFile)
+	if err != nil {
+		panic(err)
+	}
+	defer handle.Close()
+
+	packets := gopacket.NewPacketSource(handle, handle.LinkType())
+	for packet := range packets.Packets() {
+		if packet, err := readModbus(packet); err != nil {
+			t.Log(err)
+		} else {
+			t.Logf("%+v\n", packet)
+		}
 	}
 
 }

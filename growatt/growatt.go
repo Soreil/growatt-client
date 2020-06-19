@@ -21,13 +21,13 @@ const (
 )
 
 func typeOf(m ModbusTCP) (growattPacketType, error) {
-	if m.ProtocolIdentifier != ModbusProtocolGrowattV5 {
+	if m.ProtocolIdentifier != ModbusProtocolGrowattV5 && m.ProtocolIdentifier != ModbusProtocolGrowattV6 {
 		return unknown, errors.New("Unknown protocol:" + m.ProtocolIdentifier.String())
 	}
 
 	switch growattType(m.GrowattMessageID) {
 	case dataID:
-		if m.Length == 217 {
+		if m.Length == 257 {
 			return registers, nil
 		} else if m.Length == 3 {
 			return registersAck, nil
@@ -35,7 +35,7 @@ func typeOf(m ModbusTCP) (growattPacketType, error) {
 		return registers, errors.New("invalid registers length")
 
 	case pingID:
-		if m.Length == 12 {
+		if m.Length == 12 || m.Length == 32 {
 			return ping, nil
 		}
 		return ping, errors.New("Invalid ping length")
@@ -57,7 +57,7 @@ func ReadRegisterPackets(pChan <-chan gopacket.Packet, regChan chan<- TaggedRegi
 
 		t, err := typeOf(modbus)
 		if err != nil {
-			log.Println(err)
+			log.Fatal(err)
 			continue
 		}
 
@@ -75,10 +75,10 @@ func ReadRegisterPackets(pChan <-chan gopacket.Packet, regChan chan<- TaggedRegi
 			body := xor(modbus.Payload(), []byte(XORKey))
 			ack := uint8(body[:len(body)-growattPadding][0])
 			if ack != 0 {
-				log.Println("Server did not ack registers upload correctly:", ack)
+				log.Fatal("Server did not ack registers upload correctly:", ack)
 			}
 		}
-		log.Println(modbus.TransactionIdentifier)
+		//log.Fatal(modbus.TransactionIdentifier)
 
 	}
 }
@@ -103,11 +103,11 @@ const (
 //TaggedRegister is a simple helper pair
 type TaggedRegister struct {
 	time.Time
-	GrowattRegisters
+	Registers
 }
 
-//GrowattRegisters might not be complete or correct. The fields we are currently using are correct though
-type GrowattRegisters struct {
+//Registers might not be complete or correct. The fields we are currently using are correct though
+type Registers struct {
 	Status    uint16
 	Ppv       uint32
 	Vpv1      uint16
@@ -154,10 +154,10 @@ type GrowattRegisters struct {
 }
 
 //TODO give this a proper name
-func readRegStruct(s []byte) GrowattRegisters {
-	r := bytes.NewReader(s[31:])
+func readRegStruct(s []byte) Registers {
+	r := bytes.NewReader(s[71:])
 
-	var g GrowattRegisters
+	var g Registers
 	//TODO in other cases we have littleendian, is this correct at all?
 	binary.Read(r, binary.BigEndian, &g)
 
